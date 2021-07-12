@@ -415,6 +415,9 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
     }
     
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
+        if let flaggedType = type as? PossiblyDecodable.Type, !flaggedType.shouldDecode {
+            return flaggedType.emptyDecodable as! T
+        }
         guard let (_, offset) = self.decoder.description.valueOffset(
             forKey: self.decoder.string(forKey: key),
             convertingSnakeCasing: self.decoder.snakeCasing,
