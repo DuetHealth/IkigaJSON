@@ -126,6 +126,30 @@ final class IkigaJSONTests: XCTestCase {
         
         XCTAssertEqual(json, json2)
     }
+
+    func testFoundationCompatibleURLEncoding() throws {
+        struct Test: Codable, Equatable {
+            public var url: URL
+        }
+
+        let json = Test(url: .init(string: "https://apple.com")!)
+        let data = try IkigaJSONEncoder().encode(json)
+        let json2 = try JSONDecoder().decode(Test.self, from: data)
+
+        XCTAssertEqual(json, json2)
+    }
+
+    func testURLDecoding() throws {
+        struct Test: Codable, Equatable {
+            public var url: URL
+        }
+
+        let json = Test(url: .init(string: "https://apple.com")!)
+        let data = try JSONEncoder().encode(json)
+        let json2 = try IkigaJSONDecoder().decode(Test.self, from: data)
+
+        XCTAssertEqual(json, json2)
+    }
     
     func testImageDataDecoding() throws {
         struct UploadRequest: Codable, Equatable {

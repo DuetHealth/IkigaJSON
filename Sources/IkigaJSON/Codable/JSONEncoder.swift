@@ -380,6 +380,10 @@ fileprivate final class _JSONEncoder: Encoder {
             }
             
             return true
+        case let url as URL:
+            let string = url.absoluteString
+            writeValue(string)
+            return true
         default:
             return false
         }

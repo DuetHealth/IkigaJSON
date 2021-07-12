@@ -242,6 +242,12 @@ fileprivate struct _JSONDecoder: Decoder {
             @unknown default:
                 throw JSONParserError.unknownJSONStrategy
             }
+        case is URL.Type:
+            let string = try singleValueContainer().decode(String.self)
+            guard let url = URL(string: string) else {
+                throw JSONParserError.invalidURL(string)
+            }
+            return url as! D
         default:
             break
         }
