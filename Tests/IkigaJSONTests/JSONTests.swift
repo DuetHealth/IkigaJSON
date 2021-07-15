@@ -15,6 +15,10 @@ var newEncoder: IkigaJSONEncoder {
     return IkigaJSONEncoder()
 }
 
+protocol Flag {
+    static var shouldDecode: Bool { get }
+}
+
 final class IkigaJSONTests: XCTestCase {
     func testMissingCommaInObject() {
         let json = """
@@ -126,6 +130,30 @@ final class IkigaJSONTests: XCTestCase {
         
         XCTAssertEqual(json, json2)
     }
+
+    func testFoundationCompatibleURLEncoding() throws {
+        struct Test: Codable, Equatable {
+            public var url: URL
+        }
+
+        let json = Test(url: .init(string: "https://apple.com")!)
+        let data = try IkigaJSONEncoder().encode(json)
+        let json2 = try JSONDecoder().decode(Test.self, from: data)
+
+        XCTAssertEqual(json, json2)
+    }
+
+    func testURLDecoding() throws {
+        struct Test: Codable, Equatable {
+            public var url: URL
+        }
+
+        let json = Test(url: .init(string: "https://apple.com")!)
+        let data = try JSONEncoder().encode(json)
+        let json2 = try IkigaJSONDecoder().decode(Test.self, from: data)
+
+        XCTAssertEqual(json, json2)
+    }
     
     func testImageDataDecoding() throws {
         struct UploadRequest: Codable, Equatable {
@@ -141,6 +169,77 @@ final class IkigaJSONTests: XCTestCase {
         """.data(using: .utf8)!
         
         XCTAssertNoThrow(try IkigaJSONDecoder().decode(UploadRequest.self, from: data))
+    }
+
+    func testPossiblyDecodable() throws {
+        @propertyWrapper
+        struct Flagged<FlagType: Flag, DecodableType: Decodable>: Decodable, PossiblyDecodable {
+
+            public var wrappedValue: DecodableType?
+
+            public init(from decoder: Decoder) throws {
+                let container = try decoder.singleValueContainer()
+                wrappedValue = try container.decodeNil() ? nil : container.decode(DecodableType.self)
+            }
+
+            static var shouldDecode: Bool { FlagType.shouldDecode }
+            static var skipIfNotFound: Bool { true }
+
+            init() { }
+
+        }
+
+        enum MyFlag: Flag {
+            static var shouldDecode = false
+        }
+
+        struct Test: Decodable {
+            public var filename: String
+
+            @Flagged<MyFlag, Int>
+            public var value: Int?
+        }
+
+        let noData = """
+        {
+            "filename": "Hello.jpeg"
+        }
+        """.data(using: .utf8)!
+
+        let stringData = """
+        {
+            "filename": "Hello.jpeg",
+            "value": "string"
+        }
+        """.data(using: .utf8)!
+
+        let intData = """
+        {
+            "filename": "Hello.jpeg",
+            "value": 3
+        }
+        """.data(using: .utf8)!
+
+        MyFlag.shouldDecode = false
+
+        var object = try IkigaJSONDecoder().decode(Test.self, from: noData)
+        XCTAssertEqual(object.value, nil)
+
+        object = try IkigaJSONDecoder().decode(Test.self, from: stringData)
+        XCTAssertEqual(object.value, nil)
+
+        object = try IkigaJSONDecoder().decode(Test.self, from: intData)
+        XCTAssertEqual(object.value, nil)
+
+        MyFlag.shouldDecode = true
+
+        object = try IkigaJSONDecoder().decode(Test.self, from: noData)
+        XCTAssertEqual(object.value, nil)
+
+        XCTAssertThrowsError(try IkigaJSONDecoder().decode(Test.self, from: stringData))
+
+        object = try IkigaJSONDecoder().decode(Test.self, from: intData)
+        XCTAssertEqual(object.value, 3)
     }
     
     func testAndrewDataDecoding() throws {

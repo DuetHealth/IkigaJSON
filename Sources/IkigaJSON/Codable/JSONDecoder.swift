@@ -242,6 +242,12 @@ fileprivate struct _JSONDecoder: Decoder {
             @unknown default:
                 throw JSONParserError.unknownJSONStrategy
             }
+        case is URL.Type:
+            let string = try singleValueContainer().decode(String.self)
+            guard let url = URL(string: string) else {
+                throw JSONParserError.invalidURL(string)
+            }
+            return url as! D
         default:
             break
         }
@@ -415,11 +421,21 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
     }
     
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
+        var skipIfNotFound = false
+        if let flaggedType = type as? PossiblyDecodable.Type {
+            if !flaggedType.shouldDecode {
+                return flaggedType.init() as! T
+            }
+            skipIfNotFound = flaggedType.skipIfNotFound
+        }
         guard let (_, offset) = self.decoder.description.valueOffset(
             forKey: self.decoder.string(forKey: key),
             convertingSnakeCasing: self.decoder.snakeCasing,
             in: self.decoder.pointer
         ) else {
+            if skipIfNotFound {
+                return (type as! PossiblyDecodable.Type).init() as! T
+            }
             throw JSONParserError.decodingError(expected: type, keyPath: codingPath)
         }
         

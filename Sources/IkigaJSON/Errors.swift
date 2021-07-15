@@ -13,6 +13,7 @@ public enum JSONParserError: Error {
     case internalStateError
     case invalidDate(String?)
     case invalidData(String?)
+    case invalidURL(String?)
     case endOfObject
     case unknownJSONStrategy
     case missingKeyedContainer
