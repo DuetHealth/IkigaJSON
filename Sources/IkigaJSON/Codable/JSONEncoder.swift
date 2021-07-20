@@ -535,152 +535,152 @@ fileprivate struct KeyedJSONEncodingContainer<Key: CodingKey>: KeyedEncodingCont
     
     mutating func encodeNil(forKey key: Key) throws {
         if encoder.settings.encodeNilAsNull {
-            encoder.writeNull(forKey: key.stringValue)
+            encoder.writeNull(forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: Bool?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: String?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: Double?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: Float?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: Int?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: Int8?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: Int16?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: Int32?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: Int64?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: UInt?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: UInt8?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: UInt16?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: UInt32?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encodeIfPresent(_ value: UInt64?, forKey key: Key) throws {
         if value != nil || encoder.settings.encodeNilAsNull {
-            encoder.writeValue(value, forKey: key.stringValue)
+            encoder.writeValue(value, forKey: convertedStringValue(for: key))
         }
     }
     
     mutating func encode(_ value: Bool, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: String, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: Double, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: Float, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: Int, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: Int8, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: Int16, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: Int32, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: Int64, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: UInt, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: UInt8, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: UInt16, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: UInt32, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode(_ value: UInt64, forKey key: Key) throws {
-        encoder.writeValue(value, forKey: key.stringValue)
+        encoder.writeValue(value, forKey: convertedStringValue(for: key))
     }
     
     mutating func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {
-        self.encoder.writeKey(key.stringValue)
+        self.encoder.writeKey(convertedStringValue(for: key))
         
         if try self.encoder.writeOtherValue(value) {
             return
@@ -702,13 +702,13 @@ fileprivate struct KeyedJSONEncodingContainer<Key: CodingKey>: KeyedEncodingCont
     }
     
     mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        self.encoder.writeKey(key.stringValue)
+        self.encoder.writeKey(convertedStringValue(for: key))
         let encoder = _JSONEncoder(codingPath: codingPath, userInfo: self.encoder.userInfo, data: self.encoder.data)
         return encoder.container(keyedBy: keyType)
     }
     
     mutating func nestedUnkeyedContainer(forKey key: Key) -> UnkeyedEncodingContainer {
-        self.encoder.writeKey(key.stringValue)
+        self.encoder.writeKey(convertedStringValue(for: key))
         let encoder = _JSONEncoder(codingPath: codingPath + [key], userInfo: self.encoder.userInfo, data: self.encoder.data)
         return encoder.unkeyedContainer()
     }
@@ -720,6 +720,67 @@ fileprivate struct KeyedJSONEncodingContainer<Key: CodingKey>: KeyedEncodingCont
     mutating func superEncoder(forKey key: Key) -> Encoder {
         return encoder
     }
+
+    private func convertedStringValue(for key: Key) -> String {
+        switch encoder.settings.keyEncodingStrategy {
+        case .useDefaultKeys:
+            return key.stringValue
+        case .convertToSnakeCase:
+            return Self.convertToSnakeCase(key.stringValue)
+        case .custom(let converter):
+            return converter(codingPath + [key]).stringValue
+        }
+    }
+
+    // cribbed from swift-corelibs-foundation
+    fileprivate static func convertToSnakeCase(_ stringKey: String) -> String {
+        guard !stringKey.isEmpty else { return stringKey }
+
+        var words: [Range<String.Index>] = []
+        // The general idea of this algorithm is to split words on transition from lower to upper case, then on transition of >1 upper case characters to lowercase
+        //
+        // myProperty -> my_property
+        // myURLProperty -> my_url_property
+        //
+        // We assume, per Swift naming conventions, that the first character of the key is lowercase.
+        var wordStart = stringKey.startIndex
+        var searchRange = stringKey.index(after: wordStart)..<stringKey.endIndex
+
+        // Find next uppercase character
+        while let upperCaseRange = stringKey.rangeOfCharacter(from: CharacterSet.uppercaseLetters, options: [], range: searchRange) {
+            let untilUpperCase = wordStart..<upperCaseRange.lowerBound
+            words.append(untilUpperCase)
+
+            // Find next lowercase character
+            searchRange = upperCaseRange.lowerBound..<searchRange.upperBound
+            guard let lowerCaseRange = stringKey.rangeOfCharacter(from: CharacterSet.lowercaseLetters, options: [], range: searchRange) else {
+                // There are no more lower case letters. Just end here.
+                wordStart = searchRange.lowerBound
+                break
+            }
+
+            // Is the next lowercase letter more than 1 after the uppercase? If so, we encountered a group of uppercase letters that we should treat as its own word
+            let nextCharacterAfterCapital = stringKey.index(after: upperCaseRange.lowerBound)
+            if lowerCaseRange.lowerBound == nextCharacterAfterCapital {
+                // The next character after capital is a lower case character and therefore not a word boundary.
+                // Continue searching for the next upper case for the boundary.
+                wordStart = upperCaseRange.lowerBound
+            } else {
+                // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
+                let beforeLowerIndex = stringKey.index(before: lowerCaseRange.lowerBound)
+                words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
+
+                // Next word starts at the capital before the lowercase we just found
+                wordStart = beforeLowerIndex
+            }
+            searchRange = lowerCaseRange.upperBound..<searchRange.upperBound
+        }
+        words.append(wordStart..<searchRange.upperBound)
+        return words.map {
+            stringKey[$0].lowercased()
+        }.joined(separator: "_")
+    }
+
 }
 
 fileprivate struct SingleValueJSONEncodingContainer: SingleValueEncodingContainer {
