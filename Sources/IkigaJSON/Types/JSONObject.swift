@@ -32,7 +32,7 @@ public struct JSONObject: ExpressibleByDictionaryLiteral, Sequence {
     /// A list of all top-level keys within this JSONObject
     public var keys: [String] {
         return jsonBuffer.withBytePointer { pointer in
-            return self.description.keys(inPointer: pointer, unicode: true, convertingSnakeCasing: false)
+            return self.description.keys(inPointer: pointer, unicode: true, keyDecodingStrategy: .useDefaultKeys, codingPath: [])
         }
     }
     
@@ -166,7 +166,7 @@ public struct JSONObject: ExpressibleByDictionaryLiteral, Sequence {
     
     /// Reads the JSONValue associated with the specified key
     fileprivate func value(forKey key: String, in json: UnsafePointer<UInt8>) -> JSONValue? {
-        guard let (_, offset) = description.valueOffset(forKey: key, convertingSnakeCasing: false, in: json) else {
+        guard let (_, offset) = description.valueOffset(forKey: key, keyDecodingStrategy: .useDefaultKeys, codingPath: [], in: json) else {
             return nil
         }
         
@@ -208,7 +208,7 @@ public struct JSONObject: ExpressibleByDictionaryLiteral, Sequence {
     @discardableResult
     public mutating func updateValue(_ newValue: JSONValue?, forKey key: String) -> Bool {
         let keyResult = jsonBuffer.withBytePointer { pointer in
-            return description.keyOffset(forKey: key, convertingSnakeCasing: false, in: pointer)
+            return description.keyOffset(forKey: key, keyDecodingStrategy: .useDefaultKeys, codingPath: [], in: pointer)
         }
         
         guard let (index, offset) = keyResult else {

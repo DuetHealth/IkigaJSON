@@ -289,6 +289,26 @@ final class IkigaJSONTests: XCTestCase {
         XCTAssertEqual(object["awesome"].array?[0].bool, true)
         XCTAssertEqual(object["flag"].string, "UK")
     }
+
+    func testEncodeSnakeCaseJSON() throws {
+        struct Test: Codable, Equatable {
+            let myObject: String
+            let myUrl: String
+            let coolUrlObjectSss: [Bool]
+            let flag: String
+        }
+
+        var ikigaEncoder = IkigaJSONEncoder()
+        ikigaEncoder.settings.keyEncodingStrategy = .convertToSnakeCase
+        let foundationDecoder = JSONDecoder()
+        foundationDecoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        let test = Test(myObject: "Hello", myUrl: "fly", coolUrlObjectSss: [true], flag: "UK")
+        let data = try ikigaEncoder.encode(test)
+        let test2 = try foundationDecoder.decode(Test.self, from: data)
+
+        XCTAssertEqual(test, test2)
+    }
     
     func testEncodeNil() throws {
         struct Test: Codable {
