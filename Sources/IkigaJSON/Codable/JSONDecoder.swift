@@ -266,7 +266,8 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
         return decoder.description.keys(
             inPointer: decoder.pointer,
             unicode: decoder.settings.decodeUnicode,
-            convertingSnakeCasing: self.decoder.snakeCasing
+            keyDecodingStrategy: decoder.settings.keyDecodingStrategy,
+            codingPath: codingPath
         )
     }
     
@@ -277,7 +278,8 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
     func contains(_ key: Key) -> Bool {
         return decoder.description.containsKey(
             decoder.string(forKey: key),
-            convertingSnakeCasing: self.decoder.snakeCasing,
+            keyDecodingStrategy: decoder.settings.keyDecodingStrategy,
+            codingPath: codingPath,
             inPointer: decoder.pointer,
             unicode: decoder.settings.decodeUnicode
         )
@@ -286,7 +288,8 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
     func decodeNil(forKey key: Key) throws -> Bool {
         guard let type = decoder.description.type(
             ofKey: decoder.string(forKey: key),
-            convertingSnakeCasing: self.decoder.snakeCasing,
+            keyDecodingStrategy: decoder.settings.keyDecodingStrategy,
+            codingPath: codingPath,
             in: decoder.pointer
         ) else {
             return decoder.settings.decodeMissingKeyAsNil
@@ -298,7 +301,8 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
     func decode(_ type: Bool.Type, forKey key: Key) throws -> Bool {
         guard let jsonType = decoder.description.type(
             ofKey: decoder.string(forKey: key),
-            convertingSnakeCasing: self.decoder.snakeCasing,
+            keyDecodingStrategy: decoder.settings.keyDecodingStrategy,
+            codingPath: codingPath,
             in: decoder.pointer
         ) else {
             throw JSONParserError.decodingError(expected: type, keyPath: codingPath + [key])
@@ -317,7 +321,8 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
     func floatingBounds(forKey key: Key) -> (Bounds, Bool)? {
         return decoder.description.floatingBounds(
             forKey: decoder.string(forKey: key),
-            convertingSnakeCasing: self.decoder.snakeCasing,
+            keyDecodingStrategy: decoder.settings.keyDecodingStrategy,
+            codingPath: codingPath,
             in: decoder.pointer
         )
     }
@@ -325,7 +330,8 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
     func integerBounds(forKey key: Key) -> Bounds? {
         return decoder.description.integerBounds(
             forKey: decoder.string(forKey: key),
-            convertingSnakeCasing: self.decoder.snakeCasing,
+            keyDecodingStrategy: decoder.settings.keyDecodingStrategy,
+            codingPath: codingPath,
             in: decoder.pointer
         )
     }
@@ -333,7 +339,8 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
     func decode(_ type: String.Type, forKey key: Key) throws -> String {
         guard let (bounds, escaped) = decoder.description.stringBounds(
             forKey: decoder.string(forKey: key),
-            convertingSnakeCasing: self.decoder.snakeCasing,
+            keyDecodingStrategy: decoder.settings.keyDecodingStrategy,
+            codingPath: codingPath,
             in: decoder.pointer
         ) else {
             throw JSONParserError.decodingError(expected: type, keyPath: codingPath + [key])
@@ -430,7 +437,8 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
         }
         guard let (_, offset) = self.decoder.description.valueOffset(
             forKey: self.decoder.string(forKey: key),
-            convertingSnakeCasing: self.decoder.snakeCasing,
+            keyDecodingStrategy: decoder.settings.keyDecodingStrategy,
+            codingPath: codingPath,
             in: self.decoder.pointer
         ) else {
             if skipIfNotFound {
@@ -446,7 +454,8 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
         guard let (_, offset) = self.decoder.description.valueOffset(
             forKey: self.decoder.string(forKey: key),
-            convertingSnakeCasing: self.decoder.snakeCasing,
+            keyDecodingStrategy: decoder.settings.keyDecodingStrategy,
+            codingPath: codingPath,
             in: self.decoder.pointer
         ) else {
             throw JSONParserError.missingKeyedContainer
@@ -460,7 +469,8 @@ fileprivate struct KeyedJSONDecodingContainer<Key: CodingKey>: KeyedDecodingCont
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
         guard let (_, offset) = self.decoder.description.valueOffset(
             forKey: self.decoder.string(forKey: key),
-            convertingSnakeCasing: self.decoder.snakeCasing,
+            keyDecodingStrategy: decoder.settings.keyDecodingStrategy,
+            codingPath: codingPath,
             in: self.decoder.pointer
         ) else {
             throw JSONParserError.missingUnkeyedContainer
@@ -827,6 +837,33 @@ fileprivate struct SingleValueJSONDecodingContainer: SingleValueDecodingContaine
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
         return try decoder.decode(type)
     }
+}
+
+internal struct _JSONKey: CodingKey {
+
+    public var stringValue: String
+    public var intValue: Int?
+
+    public init?(stringValue: String) {
+        self.stringValue = stringValue
+        self.intValue = nil
+    }
+
+    public init?(intValue: Int) {
+        self.stringValue = "\(intValue)"
+        self.intValue = intValue
+    }
+
+    public init(stringValue: String, intValue: Int?) {
+        self.stringValue = stringValue
+        self.intValue = intValue
+    }
+
+    internal init(index: Int) {
+        self.stringValue = "Index \(index)"
+        self.intValue = index
+    }
+
 }
 
 extension FixedWidthInteger {

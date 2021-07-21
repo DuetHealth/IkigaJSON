@@ -471,6 +471,21 @@ extension JSONDescription {
     func subDescription(offset: Int) -> JSONDescription {
         return JSONDescription(buffer: buffer.getSlice(at: offset, length: buffer.readableBytes - offset)!)
     }
+
+    private func convertKeyDecoding(strategy: JSONDecoder.KeyDecodingStrategy, for characters: inout Data, codingPath: [CodingKey]) {
+        switch strategy {
+        case .useDefaultKeys: return
+        case .convertFromSnakeCase: return convertSnakeCasing(for: &characters)
+        case .custom(let builder):
+            guard let input = String(data: characters, encoding: .utf8) else {
+                return
+            }
+            let last = _JSONKey(stringValue: input)!
+            let key = builder(codingPath + [last]).stringValue
+            guard let data = key.data(using: .utf8) else { return }
+            characters = data
+        }
+    }
     
     private func convertSnakeCasing(for characters: inout Data) {
         var size = characters.count
@@ -491,10 +506,10 @@ extension JSONDescription {
         }
     }
     
-    private func snakeCasedEqual(key: [UInt8], pointer: UnsafePointer<UInt8>, length: Int) -> Bool {
+    private func keyDecodingStrategyEqual(_ strategy: JSONDecoder.KeyDecodingStrategy, codingPath: [CodingKey], key: [UInt8], pointer: UnsafePointer<UInt8>, length: Int) -> Bool {
         let keySize = key.count
         var characters = Data(bytes: pointer, count: length)
-        convertSnakeCasing(for: &characters)
+        convertKeyDecoding(strategy: strategy, for: &characters, codingPath: codingPath)
         
         // The string was guaranteed by us to still be valid UTF-8
         let byteCount = characters.count
@@ -509,17 +524,19 @@ extension JSONDescription {
     
     func containsKey(
         _ key: String,
-        convertingSnakeCasing: Bool,
+        keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy,
+        codingPath: [CodingKey],
         inPointer json: UnsafePointer<UInt8>,
         unicode: Bool,
         fromOffset offset: Int = Constants.firstArrayObjectChildOffset
     ) -> Bool {
-        return valueOffset(forKey: key, convertingSnakeCasing: convertingSnakeCasing, in: json) != nil
+        return valueOffset(forKey: key, keyDecodingStrategy: keyDecodingStrategy, codingPath: codingPath, in: json) != nil
     }
     
     func keyOffset(
         forKey key: String,
-        convertingSnakeCasing: Bool,
+        keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy,
+        codingPath: [CodingKey],
         in json: UnsafePointer<UInt8>
     ) -> (index: Int, offset: Int)? {
         // Object index
@@ -538,9 +555,12 @@ extension JSONDescription {
             let bounds = dataBounds(atIndexOffset: offset)
             
             // Does the key match our search?
-            if !convertingSnakeCasing, bounds.length == keySize, memcmp(key, json + Int(bounds.offset), Int(bounds.length)) == 0 {
-                return (index, offset)
-            } else if convertingSnakeCasing, snakeCasedEqual(key: key, pointer: json + Int(bounds.offset), length: Int(bounds.length)) {
+
+            if case .useDefaultKeys = keyDecodingStrategy {
+                if bounds.length == keySize, memcmp(key, json + Int(bounds.offset), Int(bounds.length)) == 0 {
+                    return (index, offset)
+                }
+            } else if keyDecodingStrategyEqual(keyDecodingStrategy, codingPath: codingPath, key: key, pointer: json + Int(bounds.offset), length: Int(bounds.length)) {
                 return (index, offset)
             }
             
@@ -557,10 +577,11 @@ extension JSONDescription {
     
     func valueOffset(
         forKey key: String,
-        convertingSnakeCasing: Bool,
+        keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy,
+        codingPath: [CodingKey],
         in buffer: UnsafePointer<UInt8>
     ) -> (index: Int, offset: Int)? {
-        guard let data = keyOffset(forKey: key, convertingSnakeCasing: convertingSnakeCasing, in: buffer) else {
+        guard let data = keyOffset(forKey: key, keyDecodingStrategy: keyDecodingStrategy, codingPath: codingPath, in: buffer) else {
             return nil
         }
         
@@ -584,10 +605,11 @@ extension JSONDescription {
     
     func type(
         ofKey key: String,
-        convertingSnakeCasing: Bool,
+        keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy,
+        codingPath: [CodingKey],
         in buffer: UnsafePointer<UInt8>
     ) -> JSONType? {
-        guard let (_, offset) = valueOffset(forKey: key, convertingSnakeCasing: convertingSnakeCasing, in: buffer) else {
+        guard let (_, offset) = valueOffset(forKey: key, keyDecodingStrategy: keyDecodingStrategy, codingPath: codingPath, in: buffer) else {
             return nil
         }
         
@@ -597,7 +619,8 @@ extension JSONDescription {
     func keys(
         inPointer buffer: UnsafePointer<UInt8>,
         unicode: Bool,
-        convertingSnakeCasing: Bool,
+        keyDecodingStrategy strategy: JSONDecoder.KeyDecodingStrategy,
+        codingPath: [CodingKey],
         atIndex offset: Int = Constants.firstArrayObjectChildOffset
     ) -> [String] {
         assert(self.topLevelType == .object)
@@ -613,8 +636,8 @@ extension JSONDescription {
             let escaping = self.type(atOffset: offset) == .stringWithEscaping
             
             if var stringData = bounds.makeStringData(from: buffer, escaping: escaping, unicode: unicode) {
-                if convertingSnakeCasing {
-                    convertSnakeCasing(for: &stringData)
+                if !strategy.usesDefaultKeys  {
+                    convertKeyDecoding(strategy: strategy, for: &stringData, codingPath: codingPath)
                 }
                 
                 if let key = String(data: stringData, encoding: .utf8) {
@@ -695,9 +718,9 @@ extension JSONDescription {
         return offset
     }
     
-    func stringBounds(forKey key: String, convertingSnakeCasing: Bool, in pointer: UnsafePointer<UInt8>) -> (Bounds, Bool)? {
+    func stringBounds(forKey key: String, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy, codingPath: [CodingKey], in pointer: UnsafePointer<UInt8>) -> (Bounds, Bool)? {
         guard
-            let (_, offset) = valueOffset(forKey: key, convertingSnakeCasing: convertingSnakeCasing, in: pointer)
+            let (_, offset) = valueOffset(forKey: key, keyDecodingStrategy: keyDecodingStrategy, codingPath: codingPath, in: pointer)
         else {
             return nil
         }
@@ -710,9 +733,9 @@ extension JSONDescription {
         return (bounds, type == .stringWithEscaping)
     }
     
-    func integerBounds(forKey key: String, convertingSnakeCasing: Bool, in pointer: UnsafePointer<UInt8>) -> Bounds? {
+    func integerBounds(forKey key: String, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy, codingPath: [CodingKey], in pointer: UnsafePointer<UInt8>) -> Bounds? {
         guard
-            let (_, offset) = valueOffset(forKey: key, convertingSnakeCasing: convertingSnakeCasing, in: pointer)
+            let (_, offset) = valueOffset(forKey: key, keyDecodingStrategy: keyDecodingStrategy, codingPath: codingPath, in: pointer)
         else {
             return nil
         }
@@ -723,9 +746,9 @@ extension JSONDescription {
         return dataBounds(atIndexOffset: offset)
     }
     
-    func floatingBounds(forKey key: String, convertingSnakeCasing: Bool, in pointer: UnsafePointer<UInt8>) -> (Bounds, Bool)? {
+    func floatingBounds(forKey key: String, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy, codingPath: [CodingKey], in pointer: UnsafePointer<UInt8>) -> (Bounds, Bool)? {
         guard
-            let (_, offset) = valueOffset(forKey: key, convertingSnakeCasing: convertingSnakeCasing, in: pointer)
+            let (_, offset) = valueOffset(forKey: key, keyDecodingStrategy: keyDecodingStrategy, codingPath: codingPath, in: pointer)
         else {
             return nil
         }
@@ -765,4 +788,15 @@ enum JSONType: UInt8 {
             return Constants.stringNumberIndexLength
         }
     }
+}
+
+internal extension JSONDecoder.KeyDecodingStrategy {
+
+    var usesDefaultKeys: Bool {
+        switch self {
+        case .useDefaultKeys: return true
+        default: return false
+        }
+    }
+
 }
